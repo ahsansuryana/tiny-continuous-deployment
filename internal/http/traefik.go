@@ -1,7 +1,6 @@
 package http
 
 import (
-	"deployhub/internal/project"
 	"fmt"
 	"net/http"
 	"strings"
