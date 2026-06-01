@@ -81,7 +81,7 @@ func main() {
 
 	deployer := deploy.New(projectSvc, dockerClient, db, settingsSvc)
 
-	srv := srvhttp.New(au, projectSvc, deployer, settingsSvc, assets)
+	srv := srvhttp.New(au, projectSvc, deployer, dockerClient, settingsSvc, assets)
 
 	handler := srv.Handler()
 	handler = sm.LoadAndSave(handler)

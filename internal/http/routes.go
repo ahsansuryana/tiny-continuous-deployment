@@ -3,6 +3,7 @@ package http
 import (
 	"deployhub/internal/auth"
 	"deployhub/internal/deploy"
+	"deployhub/internal/docker"
 	"deployhub/internal/project"
 	"deployhub/internal/settings"
 	"io/fs"
@@ -18,6 +19,7 @@ type Server struct {
 	auth     *auth.Auth
 	projects *project.Service
 	deployer *deploy.Deployer
+	docker   *docker.Client
 	settings *settings.Service
 	render   *Renderer
 	assets   fs.FS
@@ -35,6 +37,7 @@ func New(
 	au *auth.Auth,
 	ps *project.Service,
 	dp *deploy.Deployer,
+	dc *docker.Client,
 	ss *settings.Service,
 	assets fs.FS,
 ) *Server {
@@ -47,6 +50,7 @@ func New(
 		auth:       au,
 		projects:   ps,
 		deployer:   dp,
+		docker:     dc,
 		settings:   ss,
 		render:     render,
 		assets:     assets,
