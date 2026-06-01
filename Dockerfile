@@ -12,10 +12,14 @@ COPY go.mod .
 RUN go mod download
 COPY . .
 COPY --from=css /app/web/static/css/output.css web/static/css/output.css
-RUN go mod tidy && CGO_ENABLED=0 go build -ldflags="-s -w" -o /deployhub .
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /deployhub .
 
-FROM gcr.io/distroless/static-debian12:nonroot
+FROM alpine:3.20
+RUN apk add --no-cache ca-certificates tzdata && \
+    adduser -D -u 1001 deployhub && \
+    mkdir -p /data && \
+    chown deployhub:deployhub /data
 COPY --from=build /deployhub /deployhub
-USER nonroot:nonroot
+USER deployhub
 EXPOSE 8080
 ENTRYPOINT ["/deployhub"]
