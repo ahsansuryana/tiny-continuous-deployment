@@ -104,6 +104,9 @@ func (db *DB) migrateV2() error {
 	}{
 		{"compose_type", "TEXT", "'path'"},
 		{"compose_content", "TEXT", "''"},
+		{"traefik_hostname", "TEXT", "''"},
+		{"traefik_port", "INTEGER", "0"},
+		{"traefik_middleware", "TEXT", "''"},
 	}
 
 	for _, col := range columns {

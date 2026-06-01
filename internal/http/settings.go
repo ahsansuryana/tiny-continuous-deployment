@@ -48,13 +48,17 @@ func (s *Server) settingsUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cfg := &settings.Settings{
-		AppURL:          strings.TrimSpace(r.FormValue("app_url")),
-		Timezone:        strings.TrimSpace(r.FormValue("timezone")),
-		DockerSocket:    strings.TrimSpace(r.FormValue("docker_socket")),
-		DeployCommand:   strings.TrimSpace(r.FormValue("deploy_command")),
-		DeployTimeout:   timeout,
-		WebhookSecret:   strings.TrimSpace(r.FormValue("webhook_secret")),
-		TraefikHostname: strings.TrimSpace(r.FormValue("traefik_hostname")),
+		AppURL:              strings.TrimSpace(r.FormValue("app_url")),
+		Timezone:            strings.TrimSpace(r.FormValue("timezone")),
+		DockerSocket:        strings.TrimSpace(r.FormValue("docker_socket")),
+		DeployCommand:       strings.TrimSpace(r.FormValue("deploy_command")),
+		DeployTimeout:       timeout,
+		WebhookSecret:       strings.TrimSpace(r.FormValue("webhook_secret")),
+		TraefikDomain:       strings.TrimSpace(r.FormValue("traefik_domain")),
+		TraefikEmail:        strings.TrimSpace(r.FormValue("traefik_email")),
+		TraefikHTTPEntrypoint:  strings.TrimSpace(r.FormValue("traefik_http_entrypoint")),
+		TraefikHTTPSEntrypoint: strings.TrimSpace(r.FormValue("traefik_https_entrypoint")),
+		TraefikNetwork:      strings.TrimSpace(r.FormValue("traefik_network")),
 	}
 
 	if err := s.settings.Update(cfg); err != nil {
@@ -113,9 +117,9 @@ func (s *Server) settingsUpdate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) settingsTraefikExample(w http.ResponseWriter, r *http.Request) {
-	hostname := r.URL.Query().Get("hostname")
-	if hostname == "" {
-		hostname = "deploy.example.com"
+	domain := r.URL.Query().Get("hostname")
+	if domain == "" {
+		domain = "mydomain.com"
 	}
 
 	yaml := fmt.Sprintf(`services:
@@ -128,15 +132,22 @@ func (s *Server) settingsTraefikExample(w http.ResponseWriter, r *http.Request) 
     volumes:
       - ./data:/data
       - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - traefik
     labels:
       - traefik.enable=true
-      - traefik.http.routers.deployhub.rule=Host(\` + "`" + hostname + "`" + `)
+      - traefik.http.routers.deployhub.rule=Host(\` + "`" + domain + "`" + `)
       - traefik.http.routers.deployhub.entrypoints=websecure
       - traefik.http.routers.deployhub.tls=true
-      - traefik.http.services.deployhub.loadbalancer.server.port=8080`)
+      - traefik.http.routers.deployhub.tls.certresolver=letsencrypt
+      - traefik.http.services.deployhub.loadbalancer.server.port=8080
+
+networks:
+  traefik:
+    external: true`)
 
 	data := traefikExampleData{
-		Hostname: hostname,
+		Hostname: domain,
 		YAML:     yaml,
 	}
 

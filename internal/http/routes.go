@@ -80,6 +80,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /projects/{id}/container-logs/stream", s.projectContainerLogStream)
 	mux.HandleFunc("POST /projects/{id}/delete", s.projectDelete)
 
+	mux.HandleFunc("GET /traefik", s.traefikPage)
 	mux.HandleFunc("GET /settings", s.settingsPage)
 	mux.HandleFunc("POST /settings", s.settingsUpdate)
 	mux.HandleFunc("GET /settings/traefik", s.settingsTraefikExample)

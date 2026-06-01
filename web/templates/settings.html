@@ -86,14 +86,38 @@
 
     <section>
       <h2 class="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4">Traefik</h2>
-      <div>
-        <label for="traefik_hostname" class="block text-sm font-medium text-zinc-300 mb-1.5">Hostname</label>
-        <input id="traefik_hostname" name="traefik_hostname" type="text" value="{{.Settings.TraefikHostname}}" placeholder="deploy.example.com"
-          class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors">
-        <p class="text-xs text-zinc-500 mt-1">Used to generate example Traefik configuration</p>
+      <div class="space-y-4">
+        <div>
+          <label for="traefik_domain" class="block text-sm font-medium text-zinc-300 mb-1.5">Main Domain</label>
+          <input id="traefik_domain" name="traefik_domain" type="text" value="{{.Settings.TraefikDomain}}" placeholder="mydomain.com"
+            class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors">
+          <p class="text-xs text-zinc-500 mt-1">Root domain. Per-project routes will use {hostname}.{domain}</p>
+        </div>
+        <div>
+          <label for="traefik_email" class="block text-sm font-medium text-zinc-300 mb-1.5">Let's Encrypt Email</label>
+          <input id="traefik_email" name="traefik_email" type="text" value="{{.Settings.TraefikEmail}}" placeholder="admin@mydomain.com"
+            class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="traefik_http_entrypoint" class="block text-sm font-medium text-zinc-300 mb-1.5">HTTP Entrypoint</label>
+            <input id="traefik_http_entrypoint" name="traefik_http_entrypoint" type="text" value="{{.Settings.TraefikHTTPEntrypoint}}" placeholder="web"
+              class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors font-mono text-xs">
+          </div>
+          <div>
+            <label for="traefik_https_entrypoint" class="block text-sm font-medium text-zinc-300 mb-1.5">HTTPS Entrypoint</label>
+            <input id="traefik_https_entrypoint" name="traefik_https_entrypoint" type="text" value="{{.Settings.TraefikHTTPSEntrypoint}}" placeholder="websecure"
+              class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors font-mono text-xs">
+          </div>
+        </div>
+        <div>
+          <label for="traefik_network" class="block text-sm font-medium text-zinc-300 mb-1.5">Traefik Network</label>
+          <input id="traefik_network" name="traefik_network" type="text" value="{{.Settings.TraefikNetwork}}" placeholder="traefik"
+            class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors font-mono text-xs">
+        </div>
       </div>
       <button type="button"
-        hx-get="/settings/traefik?hostname={{.Settings.TraefikHostname}}"
+        hx-get="/settings/traefik?hostname={{.Settings.TraefikDomain}}"
         hx-target="#traefik-example"
         hx-swap="innerHTML"
         class="mt-3 px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-50 rounded-md hover:bg-zinc-800/50 border border-zinc-800 transition-colors">

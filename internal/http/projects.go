@@ -24,12 +24,13 @@ type projectFormData struct {
 }
 
 type projectDetailData struct {
-	Project    *project.Project
-	Status     string
-	LastDeploy string
-	DeployID   int64
-	CSRFToken  string
-	Username   string
+	Project      *project.Project
+	Status       string
+	LastDeploy   string
+	DeployID     int64
+	TraefikDomain string
+	CSRFToken    string
+	Username     string
 }
 
 func (s *Server) projectList(w http.ResponseWriter, r *http.Request) {
@@ -63,18 +64,23 @@ func (s *Server) projectCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	traefikPort, _ := strconv.Atoi(strings.TrimSpace(r.FormValue("traefik_port")))
+
 	p := &project.Project{
-		Name:           strings.TrimSpace(r.FormValue("name")),
-		RepoURL:        strings.TrimSpace(r.FormValue("repo_url")),
-		ComposePath:    strings.TrimSpace(r.FormValue("compose_path")),
-		ComposeType:    strings.TrimSpace(r.FormValue("compose_type")),
-		ComposeContent: strings.TrimSpace(r.FormValue("compose_content")),
-		WebhookToken:   strings.TrimSpace(r.FormValue("webhook_token")),
-		Branch:         strings.TrimSpace(r.FormValue("branch")),
-		RegistryType:   strings.TrimSpace(r.FormValue("registry_type")),
-		RegistryUser:   strings.TrimSpace(r.FormValue("registry_username")),
-		RegistryPass:   strings.TrimSpace(r.FormValue("registry_password")),
-		AutoDeploy:     r.FormValue("auto_deploy") == "on",
+		Name:             strings.TrimSpace(r.FormValue("name")),
+		RepoURL:          strings.TrimSpace(r.FormValue("repo_url")),
+		ComposePath:      strings.TrimSpace(r.FormValue("compose_path")),
+		ComposeType:      strings.TrimSpace(r.FormValue("compose_type")),
+		ComposeContent:   strings.TrimSpace(r.FormValue("compose_content")),
+		WebhookToken:     strings.TrimSpace(r.FormValue("webhook_token")),
+		Branch:           strings.TrimSpace(r.FormValue("branch")),
+		RegistryType:     strings.TrimSpace(r.FormValue("registry_type")),
+		RegistryUser:     strings.TrimSpace(r.FormValue("registry_username")),
+		RegistryPass:     strings.TrimSpace(r.FormValue("registry_password")),
+		AutoDeploy:       r.FormValue("auto_deploy") == "on",
+		TraefikHostname:  strings.TrimSpace(r.FormValue("traefik_hostname")),
+		TraefikPort:      traefikPort,
+		TraefikMiddleware: strings.TrimSpace(r.FormValue("traefik_middleware")),
 	}
 
 	if errMsg := p.Validate(); errMsg != "" {
@@ -135,13 +141,15 @@ func (s *Server) projectDetail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	username := s.auth.GetUsername(r)
+	traefikDomain, _ := s.settings.Get()
 	s.render.Render(w, r, "project_detail.html", projectDetailData{
-		Project:    p,
-		Status:     status,
-		LastDeploy: lastDeploy,
-		DeployID:   deployID,
-		CSRFToken:  s.csrfToken(r),
-		Username:   username,
+		Project:       p,
+		Status:        status,
+		LastDeploy:    lastDeploy,
+		DeployID:      deployID,
+		TraefikDomain: traefikDomain.TraefikDomain,
+		CSRFToken:     s.csrfToken(r),
+		Username:      username,
 	})
 }
 
@@ -179,19 +187,24 @@ func (s *Server) projectUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	traefikPort, _ := strconv.Atoi(strings.TrimSpace(r.FormValue("traefik_port")))
+
 	p := &project.Project{
-		ID:             id,
-		Name:           strings.TrimSpace(r.FormValue("name")),
-		RepoURL:        strings.TrimSpace(r.FormValue("repo_url")),
-		ComposePath:    strings.TrimSpace(r.FormValue("compose_path")),
-		ComposeType:    strings.TrimSpace(r.FormValue("compose_type")),
-		ComposeContent: strings.TrimSpace(r.FormValue("compose_content")),
-		WebhookToken:   strings.TrimSpace(r.FormValue("webhook_token")),
-		Branch:         strings.TrimSpace(r.FormValue("branch")),
-		RegistryType:   strings.TrimSpace(r.FormValue("registry_type")),
-		RegistryUser:   strings.TrimSpace(r.FormValue("registry_username")),
-		RegistryPass:   strings.TrimSpace(r.FormValue("registry_password")),
-		AutoDeploy:     r.FormValue("auto_deploy") == "on",
+		ID:               id,
+		Name:             strings.TrimSpace(r.FormValue("name")),
+		RepoURL:          strings.TrimSpace(r.FormValue("repo_url")),
+		ComposePath:      strings.TrimSpace(r.FormValue("compose_path")),
+		ComposeType:      strings.TrimSpace(r.FormValue("compose_type")),
+		ComposeContent:   strings.TrimSpace(r.FormValue("compose_content")),
+		WebhookToken:     strings.TrimSpace(r.FormValue("webhook_token")),
+		Branch:           strings.TrimSpace(r.FormValue("branch")),
+		RegistryType:     strings.TrimSpace(r.FormValue("registry_type")),
+		RegistryUser:     strings.TrimSpace(r.FormValue("registry_username")),
+		RegistryPass:     strings.TrimSpace(r.FormValue("registry_password")),
+		AutoDeploy:       r.FormValue("auto_deploy") == "on",
+		TraefikHostname:  strings.TrimSpace(r.FormValue("traefik_hostname")),
+		TraefikPort:      traefikPort,
+		TraefikMiddleware: strings.TrimSpace(r.FormValue("traefik_middleware")),
 	}
 
 	if errMsg := p.Validate(); errMsg != "" {

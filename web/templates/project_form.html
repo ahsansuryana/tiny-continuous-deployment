@@ -69,6 +69,30 @@ services:
     </div>
 
     <div>
+      <h3 class="text-sm font-medium text-zinc-300 mb-3">Traefik Routing</h3>
+      <div class="space-y-3 ml-0">
+        <p class="text-xs text-zinc-500">Routes {hostname}.{domain} from Traefik to this service</p>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label for="traefik_hostname" class="block text-xs text-zinc-400 mb-1">Hostname</label>
+            <input id="traefik_hostname" name="traefik_hostname" type="text" value="{{.Project.TraefikHostname}}" placeholder="nginx"
+              class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 transition-colors font-mono text-xs">
+          </div>
+          <div>
+            <label for="traefik_port" class="block text-xs text-zinc-400 mb-1">Target Port</label>
+            <input id="traefik_port" name="traefik_port" type="number" value="{{.Project.TraefikPort}}" placeholder="80" min="1" max="65535"
+              class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 transition-colors font-mono text-xs">
+          </div>
+          <div>
+            <label for="traefik_middleware" class="block text-xs text-zinc-400 mb-1">Middleware</label>
+            <input id="traefik_middleware" name="traefik_middleware" type="text" value="{{.Project.TraefikMiddleware}}" placeholder="auth, rate-limit"
+              class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 transition-colors font-mono text-xs">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
       <h3 class="text-sm font-medium text-zinc-300 mb-3">Registry Settings</h3>
       <div class="space-y-3 ml-0">
         <div class="grid grid-cols-3 gap-3">

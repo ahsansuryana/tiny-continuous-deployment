@@ -42,8 +42,16 @@ func (s *Service) Get() (*Settings, error) {
 			}
 		case "webhook_secret":
 			settings.WebhookSecret = value
-		case "traefik_hostname":
-			settings.TraefikHostname = value
+		case "traefik_hostname", "traefik_domain":
+			settings.TraefikDomain = value
+		case "traefik_email":
+			settings.TraefikEmail = value
+		case "traefik_http_entrypoint":
+			settings.TraefikHTTPEntrypoint = value
+		case "traefik_https_entrypoint":
+			settings.TraefikHTTPSEntrypoint = value
+		case "traefik_network":
+			settings.TraefikNetwork = value
 		}
 	}
 	return settings, nil
@@ -51,13 +59,17 @@ func (s *Service) Get() (*Settings, error) {
 
 func (s *Service) Update(settings *Settings) error {
 	pairs := map[string]string{
-		"app_url":          settings.AppURL,
-		"timezone":         settings.Timezone,
-		"docker_socket":    settings.DockerSocket,
-		"deploy_command":   settings.DeployCommand,
-		"deploy_timeout":   strconv.Itoa(settings.DeployTimeout),
-		"webhook_secret":   settings.WebhookSecret,
-		"traefik_hostname": settings.TraefikHostname,
+		"app_url":                settings.AppURL,
+		"timezone":               settings.Timezone,
+		"docker_socket":          settings.DockerSocket,
+		"deploy_command":         settings.DeployCommand,
+		"deploy_timeout":         strconv.Itoa(settings.DeployTimeout),
+		"webhook_secret":         settings.WebhookSecret,
+		"traefik_domain":         settings.TraefikDomain,
+		"traefik_email":          settings.TraefikEmail,
+		"traefik_http_entrypoint":  settings.TraefikHTTPEntrypoint,
+		"traefik_https_entrypoint": settings.TraefikHTTPSEntrypoint,
+		"traefik_network":        settings.TraefikNetwork,
 	}
 
 	for key, value := range pairs {

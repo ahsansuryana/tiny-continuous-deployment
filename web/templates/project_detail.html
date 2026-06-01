@@ -72,6 +72,15 @@
       <div class="text-sm mt-0.5 font-mono text-zinc-400">{{.Project.WebhookToken}}</div>
     </div>
     <div class="bg-zinc-900 px-5 py-3.5">
+      <div class="text-zinc-400 text-xs font-medium uppercase tracking-wider">Traefik Route</div>
+      <div class="text-sm mt-0.5">
+        {{if .Project.TraefikHostname}}
+        <a href="http://{{.Project.TraefikHostname}}.{{.TraefikDomain}}" class="text-blue-400 hover:text-blue-300" target="_blank">{{.Project.TraefikHostname}}.{{.TraefikDomain}}</a>
+        <span class="text-zinc-500">:{{if .Project.TraefikPort}}{{.Project.TraefikPort}}{{else}}80{{end}}</span>
+        {{else}}<span class="text-zinc-500">—</span>{{end}}
+      </div>
+    </div>
+    <div class="bg-zinc-900 px-5 py-3.5">
       <div class="text-zinc-400 text-xs font-medium uppercase tracking-wider">Registry</div>
       <div class="text-sm mt-0.5">{{if .Project.RegistryType}}{{.Project.RegistryType}}{{else}}<span class="text-zinc-500">None</span>{{end}}</div>
     </div>

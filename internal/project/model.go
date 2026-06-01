@@ -1,20 +1,23 @@
 package project
 
 type Project struct {
-	ID             int64  `json:"id"`
-	Name           string `json:"name"`
-	RepoURL        string `json:"repo_url"`
-	ComposePath    string `json:"compose_path"`
-	ComposeType    string `json:"compose_type"`
-	ComposeContent string `json:"compose_content"`
-	WebhookToken   string `json:"-"`
-	Branch         string `json:"branch"`
-	RegistryType   string `json:"registry_type"`
-	RegistryUser   string `json:"registry_username"`
-	RegistryPass   string `json:"-"`
-	AutoDeploy     bool   `json:"auto_deploy"`
-	CreatedAt      string `json:"created_at"`
-	UpdatedAt      string `json:"updated_at"`
+	ID               int64  `json:"id"`
+	Name             string `json:"name"`
+	RepoURL          string `json:"repo_url"`
+	ComposePath      string `json:"compose_path"`
+	ComposeType      string `json:"compose_type"`
+	ComposeContent   string `json:"compose_content"`
+	WebhookToken     string `json:"-"`
+	Branch           string `json:"branch"`
+	RegistryType     string `json:"registry_type"`
+	RegistryUser     string `json:"registry_username"`
+	RegistryPass     string `json:"-"`
+	AutoDeploy       bool   `json:"auto_deploy"`
+	TraefikHostname  string `json:"traefik_hostname"`
+	TraefikPort      int    `json:"traefik_port"`
+	TraefikMiddleware string `json:"traefik_middleware"`
+	CreatedAt        string `json:"created_at"`
+	UpdatedAt        string `json:"updated_at"`
 }
 
 type ProjectStatus struct {

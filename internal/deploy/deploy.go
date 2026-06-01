@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -93,6 +94,7 @@ func (d *Deployer) Run(projectID int64, trigger string) (int64, error) {
 			d.finishDeployment(deployID, "failed", fmt.Sprintf("[ERROR] %v", err))
 			return
 		}
+		d.injectTraefikLabels(proj, settings)
 		d.executeDeploy(ctx, deployID, proj, settings)
 	}()
 
@@ -161,6 +163,122 @@ func (d *Deployer) finishDeployment(deployID int64, status string, logText strin
 	if err != nil {
 		log.Printf("failed to finish deployment: %v", err)
 	}
+}
+
+func (d *Deployer) injectTraefikLabels(proj *project.Project, s *settings.Settings) {
+	if proj.TraefikHostname == "" || s.TraefikDomain == "" {
+		return
+	}
+
+	composePath := filepath.Join(proj.DeployDir(), "docker-compose.yml")
+	data, err := os.ReadFile(composePath)
+	if err != nil {
+		log.Printf("failed to read compose file for label injection: %v", err)
+		return
+	}
+
+	content := string(data)
+	domain := s.TraefikDomain
+	port := proj.TraefikPort
+	if port == 0 {
+		port = 80
+	}
+	entrypoint := s.TraefikHTTPSEntrypoint
+	if entrypoint == "" {
+		entrypoint = "websecure"
+	}
+	network := s.TraefikNetwork
+	if network == "" {
+		network = "traefik"
+	}
+
+	serviceName := strings.ReplaceAll(proj.Name, "_", "-")
+
+	labels := fmt.Sprintf(`
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.%s.rule=Host(\`+"`"+`%s.%s\`+"`"+`)
+      - traefik.http.routers.%s.entrypoints=%s
+      - traefik.http.routers.%s.tls=true
+      - traefik.http.routers.%s.tls.certresolver=letsencrypt
+      - traefik.http.services.%s.loadbalancer.server.port=%d`, serviceName, proj.TraefikHostname, domain, serviceName, entrypoint, serviceName, serviceName, serviceName, port)
+
+	middleware := strings.TrimSpace(proj.TraefikMiddleware)
+	if middleware != "" {
+		labels += fmt.Sprintf(`
+      - traefik.http.routers.%s.middlewares=%s`, serviceName, middleware)
+	}
+
+	networkConfig := fmt.Sprintf(`
+    networks:
+      - %s`, network)
+
+	topNetworks := fmt.Sprintf(`
+networks:
+  %s:
+    external: true`, network)
+
+	modified := injectIntoCompose(content, labels, networkConfig, topNetworks)
+
+	if err := os.WriteFile(composePath, []byte(modified), 0644); err != nil {
+		log.Printf("failed to write compose file with labels: %v", err)
+	}
+}
+
+func injectIntoCompose(content, labels, networkConfig, topNetworks string) string {
+	lines := strings.Split(content, "\n")
+	var result []string
+	servicesStarted := false
+	hasNetworksSection := false
+	serviceIndices := []int{}
+	lastServiceLine := -1
+
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "services:" {
+			servicesStarted = true
+		}
+		if servicesStarted && len(trimmed) > 0 && trimmed[0] != '#' && trimmed[0] != ' ' && trimmed != "services:" {
+			if i > 0 && strings.TrimSpace(lines[i-1]) != "" {
+				serviceIndices = append(serviceIndices, i)
+			}
+		}
+		if strings.HasPrefix(trimmed, "networks:") {
+			hasNetworksSection = true
+		}
+		result = append(result, line)
+	}
+
+	if len(serviceIndices) == 0 {
+		return content
+	}
+
+	lastServiceLine = serviceIndices[len(serviceIndices)-1]
+
+	for i := lastServiceLine; i < len(lines); i++ {
+		trimmed := strings.TrimSpace(lines[i])
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		if trimmed[0] != ' ' {
+			lastServiceLine = i
+			break
+		}
+	}
+
+	var finalResult []string
+	for i, line := range lines {
+		finalResult = append(finalResult, line)
+		if i == lastServiceLine-1 {
+			finalResult = append(finalResult, labels, networkConfig)
+		}
+	}
+
+	if !hasNetworksSection {
+		finalResult = append(finalResult, topNetworks)
+	}
+
+	return strings.Join(finalResult, "\n")
 }
 
 func (d *Deployer) ensureComposeFile(proj *project.Project) error {
