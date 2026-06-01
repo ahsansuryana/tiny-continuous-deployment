@@ -82,10 +82,8 @@
   <div>
     <h2 class="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-3">Deploy URL</h2>
     <div class="bg-zinc-900 border border-zinc-800 rounded-md px-4 py-3">
-      <code class="text-sm text-zinc-300 break-all">curl -X POST https://your-host.com/api/deploy/{{.Project.Name}} \
-  -H "Authorization: Bearer {{.Project.WebhookToken}}"</code>
-      <button onclick="navigator.clipboard.writeText('curl -X POST https://your-host.com/api/deploy/{{.Project.Name}} -H \"Authorization: Bearer {{.Project.WebhookToken}}\"')"
-        class="text-xs text-zinc-500 hover:text-zinc-300 mt-2 inline-block">Copy</button>
+      <pre class="text-sm text-zinc-300 whitespace-break-spaces">curl -X POST https://your-host.com/api/deploy/{{.Project.Name}} -H "Authorization: Bearer {{.Project.WebhookToken}}"</pre>
+      <button onclick="copyContent(this)" class="text-xs text-zinc-500 hover:text-zinc-300 mt-2 inline-block">Copy</button>
     </div>
   </div>
 
