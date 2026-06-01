@@ -15,8 +15,10 @@ COPY --from=css /app/web/static/css/output.css web/static/css/output.css
 RUN go mod tidy && CGO_ENABLED=0 go build -ldflags="-s -w" -o /deployhub .
 
 FROM alpine:3.20
-RUN apk add --no-cache ca-certificates tzdata && \
+RUN apk add --no-cache ca-certificates tzdata docker-cli && \
     adduser -D -u 1001 deployhub && \
+    addgroup -g 999 docker && \
+    adduser deployhub docker && \
     mkdir -p /data && \
     chown deployhub:deployhub /data
 COPY --from=build /deployhub /deployhub
