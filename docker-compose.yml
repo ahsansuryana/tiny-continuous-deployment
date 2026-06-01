@@ -1,0 +1,23 @@
+services:
+  deployhub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: deployhub
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - DATA_DIR=/data
+      - LISTEN_ADDR=:8080
+    volumes:
+      - ./data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.deployhub.rule=Host(`deploy.example.com`)
+      - traefik.http.routers.deployhub.entrypoints=websecure
+      - traefik.http.routers.deployhub.tls=true
+      - traefik.http.services.deployhub.loadbalancer.server.port=8080

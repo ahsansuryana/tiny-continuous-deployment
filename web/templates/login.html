@@ -1,0 +1,41 @@
+{{define "login.html"}}<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - DeployHub</title>
+<link href="/static/css/output.css" rel="stylesheet">
+<style>
+body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+</style>
+</head>
+<body class="bg-zinc-950 text-zinc-50 font-sans antialiased">
+<div class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-sm px-6">
+    <div class="mb-8">
+      <h1 class="text-2xl font-semibold tracking-tight">DeployHub</h1>
+      <p class="text-zinc-400 text-sm mt-1">Sign in to your account</p>
+    </div>
+    <form action="/login" method="post" class="space-y-4">
+      <div>
+        <label for="username" class="block text-sm font-medium text-zinc-300 mb-1.5">Username</label>
+        <input id="username" name="username" type="text" required autocomplete="username" placeholder="admin"
+          class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors">
+      </div>
+      <div>
+        <label for="password" class="block text-sm font-medium text-zinc-300 mb-1.5">Password</label>
+        <input id="password" name="password" type="password" required autocomplete="current-password"
+          class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors">
+      </div>
+      {{if .Error}}
+      <div class="text-red-500 text-sm">{{.Error}}</div>
+      {{end}}
+      <button type="submit"
+        class="w-full px-4 py-2 bg-zinc-50 text-zinc-950 text-sm font-medium rounded-md hover:bg-zinc-200 focus:outline-none focus:ring-1 focus:ring-zinc-500 transition-colors">
+        Sign in
+      </button>
+    </form>
+  </div>
+</div>
+</body>
+</html>{{end}}

@@ -1,0 +1,113 @@
+{{define "settings.html"}}
+<div class="max-w-2xl space-y-8">
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight">Settings</h1>
+  </div>
+
+  {{if .Message}}
+  <div class="px-4 py-3 bg-green-950/30 border border-green-900/50 rounded-md text-sm text-green-400">{{.Message}}</div>
+  {{end}}
+  {{if .Error}}
+  <div class="px-4 py-3 bg-red-950/30 border border-red-900/50 rounded-md text-sm text-red-400">{{.Error}}</div>
+  {{end}}
+
+  <form action="/settings" method="post" class="space-y-8">
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+    <section>
+      <h2 class="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4">General</h2>
+      <div class="space-y-4">
+        <div>
+          <label for="app_url" class="block text-sm font-medium text-zinc-300 mb-1.5">App URL</label>
+          <input id="app_url" name="app_url" type="text" value="{{.Settings.AppURL}}" placeholder="http://localhost:8080"
+            class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors">
+          <p class="text-xs text-zinc-500 mt-1">Public URL for webhook URLs and links</p>
+        </div>
+        <div>
+          <label for="timezone" class="block text-sm font-medium text-zinc-300 mb-1.5">Timezone</label>
+          <input id="timezone" name="timezone" type="text" value="{{.Settings.Timezone}}" placeholder="UTC"
+            class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors">
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4">Authentication</h2>
+      <div class="space-y-4">
+        <div>
+          <label for="current_password" class="block text-sm font-medium text-zinc-300 mb-1.5">Current Password</label>
+          <input id="current_password" name="current_password" type="password" autocomplete="current-password"
+            class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors">
+        </div>
+        <div>
+          <label for="new_password" class="block text-sm font-medium text-zinc-300 mb-1.5">New Password</label>
+          <input id="new_password" name="new_password" type="password" autocomplete="new-password" minlength="8"
+            class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors">
+          <p class="text-xs text-zinc-500 mt-1">At least 8 characters. Leave both fields empty to keep current password.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4">Docker</h2>
+      <div>
+        <label for="docker_socket" class="block text-sm font-medium text-zinc-300 mb-1.5">Docker Socket Path</label>
+        <input id="docker_socket" name="docker_socket" type="text" value="{{.Settings.DockerSocket}}" placeholder="/var/run/docker.sock"
+          class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors font-mono text-xs">
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4">Deployments</h2>
+      <div class="space-y-4">
+        <div>
+          <label for="deploy_command" class="block text-sm font-medium text-zinc-300 mb-1.5">Default Deploy Command</label>
+          <input id="deploy_command" name="deploy_command" type="text" value="{{.Settings.DeployCommand}}"
+            class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors font-mono text-xs">
+          <p class="text-xs text-zinc-500 mt-1">Shell command to execute. Use &amp;&amp; to chain commands.</p>
+        </div>
+        <div>
+          <label for="deploy_timeout" class="block text-sm font-medium text-zinc-300 mb-1.5">Deploy Timeout (seconds)</label>
+          <input id="deploy_timeout" name="deploy_timeout" type="number" value="{{.Settings.DeployTimeout}}" min="30" max="3600"
+            class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors">
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4">Webhooks</h2>
+      <div>
+        <label for="webhook_secret" class="block text-sm font-medium text-zinc-300 mb-1.5">Global Webhook Secret</label>
+        <input id="webhook_secret" name="webhook_secret" type="text" value="{{.Settings.WebhookSecret}}"
+          class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors">
+        <p class="text-xs text-zinc-500 mt-1">Optional: require this secret in addition to project-specific tokens</p>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4">Traefik</h2>
+      <div>
+        <label for="traefik_hostname" class="block text-sm font-medium text-zinc-300 mb-1.5">Hostname</label>
+        <input id="traefik_hostname" name="traefik_hostname" type="text" value="{{.Settings.TraefikHostname}}" placeholder="deploy.example.com"
+          class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors">
+        <p class="text-xs text-zinc-500 mt-1">Used to generate example Traefik configuration</p>
+      </div>
+      <button type="button"
+        hx-get="/settings/traefik?hostname={{.Settings.TraefikHostname}}"
+        hx-target="#traefik-example"
+        hx-swap="innerHTML"
+        class="mt-3 px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-50 rounded-md hover:bg-zinc-800/50 border border-zinc-800 transition-colors">
+        Show Example
+      </button>
+      <div id="traefik-example" class="mt-4"></div>
+    </section>
+
+    <div class="pt-2">
+      <button type="submit"
+        class="px-4 py-2 bg-zinc-50 text-zinc-950 text-sm font-medium rounded-md hover:bg-zinc-200 transition-colors">
+        Save Settings
+      </button>
+    </div>
+  </form>
+</div>
+{{end}}

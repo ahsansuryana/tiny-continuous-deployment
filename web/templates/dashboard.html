@@ -1,0 +1,88 @@
+{{define "dashboard.html"}}
+<div class="space-y-8">
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight">Dashboard</h1>
+  </div>
+
+  <div class="grid grid-cols-4 gap-px bg-zinc-800 rounded-md overflow-hidden">
+    <div class="bg-zinc-900 px-5 py-4">
+      <div class="text-zinc-400 text-xs font-medium uppercase tracking-wider">Projects</div>
+      <div class="text-2xl font-semibold mt-1">{{.TotalProjects}}</div>
+    </div>
+    <div class="bg-zinc-900 px-5 py-4">
+      <div class="text-zinc-400 text-xs font-medium uppercase tracking-wider">Running</div>
+      <div class="text-2xl font-semibold mt-1 text-green-500">{{.RunningCount}}</div>
+    </div>
+    <div class="bg-zinc-900 px-5 py-4">
+      <div class="text-zinc-400 text-xs font-medium uppercase tracking-wider">Failed</div>
+      <div class="text-2xl font-semibold mt-1 text-red-500">{{.FailedCount}}</div>
+    </div>
+    <div class="bg-zinc-900 px-5 py-4">
+      <div class="text-zinc-400 text-xs font-medium uppercase tracking-wider">Last Deploy</div>
+      <div class="text-2xl font-semibold mt-1 text-zinc-50">{{.LastDeploy}}</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-sm font-medium text-zinc-400 uppercase tracking-wider">Projects</h2>
+      <a href="/projects/new" class="text-sm text-zinc-400 hover:text-zinc-50 transition-colors">New Project</a>
+    </div>
+    <div class="border border-zinc-800 rounded-md overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-800 bg-zinc-900/50">
+            <th class="text-left py-2.5 px-4 text-xs font-medium text-zinc-400 uppercase tracking-wider">Name</th>
+            <th class="text-left py-2.5 px-4 text-xs font-medium text-zinc-400 uppercase tracking-wider">Status</th>
+            <th class="text-left py-2.5 px-4 text-xs font-medium text-zinc-400 uppercase tracking-wider">Path</th>
+            <th class="text-right py-2.5 px-4 text-xs font-medium text-zinc-400 uppercase tracking-wider">Last Deploy</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range .Projects}}
+          <tr class="border-b border-zinc-800 last:border-0 hover:bg-zinc-900/30 transition-colors">
+            <td class="py-2.5 px-4">
+              <a href="/projects/{{.ID}}" class="text-zinc-50 hover:text-blue-400 transition-colors font-medium">{{.Name}}</a>
+            </td>
+            <td class="py-2.5 px-4">
+              {{if eq .Status "success"}}
+              <span class="inline-flex items-center gap-1.5 text-green-500">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                Success
+              </span>
+              {{else if eq .Status "running"}}
+              <span class="inline-flex items-center gap-1.5 text-amber-500">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                Running
+              </span>
+              {{else if eq .Status "failed"}}
+              <span class="inline-flex items-center gap-1.5 text-red-500">
+                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                Failed
+              </span>
+              {{else}}
+              <span class="inline-flex items-center gap-1.5 text-zinc-400">
+                <span class="w-1.5 h-1.5 rounded-full bg-zinc-600"></span>
+                Pending
+              </span>
+              {{end}}
+            </td>
+            <td class="py-2.5 px-4 text-zinc-400 font-mono text-xs">{{.ComposePath}}</td>
+            <td class="py-2.5 px-4 text-right text-zinc-400">
+              {{if .LastDeployAt}}{{timeAgo .LastDeployAt}}{{else}}—{{end}}
+            </td>
+          </tr>
+          {{else}}
+          <tr>
+            <td colspan="4" class="py-12 text-center text-zinc-500">
+              <p class="text-sm">No projects yet</p>
+              <a href="/projects/new" class="text-sm text-blue-400 hover:text-blue-300 mt-1 inline-block">Create your first project</a>
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{{end}}

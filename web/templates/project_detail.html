@@ -1,0 +1,88 @@
+{{define "project_detail.html"}}
+<div class="max-w-4xl space-y-8">
+  <div class="flex items-start justify-between">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-semibold tracking-tight">{{.Project.Name}}</h1>
+        {{if eq .Status "success"}}
+        <span class="inline-flex items-center gap-1 text-green-500 text-sm">
+          <span class="w-2 h-2 rounded-full bg-green-500"></span>Success
+        </span>
+        {{else if eq .Status "running"}}
+        <span class="inline-flex items-center gap-1 text-amber-500 text-sm">
+          <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>Running
+        </span>
+        {{else if eq .Status "failed"}}
+        <span class="inline-flex items-center gap-1 text-red-500 text-sm">
+          <span class="w-2 h-2 rounded-full bg-red-500"></span>Failed
+        </span>
+        {{else}}
+        <span class="inline-flex items-center gap-1 text-zinc-500 text-sm">
+          <span class="w-2 h-2 rounded-full bg-zinc-600"></span>Pending
+        </span>
+        {{end}}
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <form action="/projects/{{.Project.ID}}/deploy" method="post" class="inline">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <button class="px-3 py-1.5 bg-zinc-50 text-zinc-950 text-sm font-medium rounded-md hover:bg-zinc-200 transition-colors">
+          Deploy Now
+        </button>
+      </form>
+      <a href="/projects/{{.Project.ID}}/edit" class="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-50 rounded-md hover:bg-zinc-800/50 transition-colors border border-zinc-800">
+        Edit
+      </a>
+      <a href="/projects/{{.Project.ID}}/logs" class="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-50 rounded-md hover:bg-zinc-800/50 transition-colors border border-zinc-800">
+        Logs
+      </a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-px bg-zinc-800 rounded-md overflow-hidden">
+    <div class="bg-zinc-900 px-5 py-3.5">
+      <div class="text-zinc-400 text-xs font-medium uppercase tracking-wider">Repository</div>
+      <div class="text-sm mt-0.5">{{if .Project.RepoURL}}<a href="{{.Project.RepoURL}}" class="text-blue-400 hover:text-blue-300">{{.Project.RepoURL}}</a>{{else}}<span class="text-zinc-500">—</span>{{end}}</div>
+    </div>
+    <div class="bg-zinc-900 px-5 py-3.5">
+      <div class="text-zinc-400 text-xs font-medium uppercase tracking-wider">Branch</div>
+      <div class="text-sm mt-0.5 font-mono">{{.Project.Branch}}</div>
+    </div>
+    <div class="bg-zinc-900 px-5 py-3.5">
+      <div class="text-zinc-400 text-xs font-medium uppercase tracking-wider">Compose Path</div>
+      <div class="text-sm mt-0.5 font-mono">{{.Project.ComposePath}}</div>
+    </div>
+    <div class="bg-zinc-900 px-5 py-3.5">
+      <div class="text-zinc-400 text-xs font-medium uppercase tracking-wider">Webhook Token</div>
+      <div class="text-sm mt-0.5 font-mono text-zinc-400">{{.Project.WebhookToken}}</div>
+    </div>
+    <div class="bg-zinc-900 px-5 py-3.5">
+      <div class="text-zinc-400 text-xs font-medium uppercase tracking-wider">Registry</div>
+      <div class="text-sm mt-0.5">{{if .Project.RegistryType}}{{.Project.RegistryType}}{{else}}<span class="text-zinc-500">None</span>{{end}}</div>
+    </div>
+    <div class="bg-zinc-900 px-5 py-3.5">
+      <div class="text-zinc-400 text-xs font-medium uppercase tracking-wider">Created</div>
+      <div class="text-sm mt-0.5">{{.Project.CreatedAt}}</div>
+    </div>
+  </div>
+
+  <div>
+    <h2 class="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-3">Deploy URL</h2>
+    <div class="bg-zinc-900 border border-zinc-800 rounded-md px-4 py-3">
+      <code class="text-sm text-zinc-300 break-all">curl -X POST https://your-host.com/api/deploy/{{.Project.Name}} \
+  -H "Authorization: Bearer {{.Project.WebhookToken}}"</code>
+      <button onclick="navigator.clipboard.writeText('curl -X POST https://your-host.com/api/deploy/{{.Project.Name}} -H \"Authorization: Bearer {{.Project.WebhookToken}}\"')"
+        class="text-xs text-zinc-500 hover:text-zinc-300 mt-2 inline-block">Copy</button>
+    </div>
+  </div>
+
+  {{if .LastDeploy}}
+  <div>
+    <h2 class="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-3">Last Deployment</h2>
+    <a href="/projects/{{.Project.ID}}/logs" class="text-sm text-zinc-400 hover:text-zinc-50 transition-colors">
+      {{timeAgo .LastDeploy}} — View logs →
+    </a>
+  </div>
+  {{end}}
+</div>
+{{end}}

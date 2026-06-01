@@ -1,0 +1,119 @@
+{{define "log_viewer.html"}}
+<div class="max-w-4xl space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-2 text-sm text-zinc-400 mb-1">
+        <a href="/projects/{{.ProjectID}}" class="hover:text-zinc-50 transition-colors">{{.ProjectName}}</a>
+        <span>/</span>
+        <span class="text-zinc-50">Logs</span>
+      </div>
+      <h1 class="text-2xl font-semibold tracking-tight">Deployment Logs</h1>
+    </div>
+    <form action="/projects/{{.ProjectID}}/deploy" method="post">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <button class="px-3 py-1.5 bg-zinc-50 text-zinc-950 text-sm font-medium rounded-md hover:bg-zinc-200 transition-colors">
+        Deploy Now
+      </button>
+    </form>
+  </div>
+
+  {{if .Deployment}}
+  <div class="border border-zinc-800 rounded-md overflow-hidden">
+    <div class="flex items-center justify-between px-4 py-2.5 bg-zinc-900/80 border-b border-zinc-800">
+      <div class="flex items-center gap-3 text-xs">
+        <span class="text-zinc-400">Deployment #{{.Deployment.ID}}</span>
+        <span class="text-zinc-600">·</span>
+        <span class="text-zinc-400">{{.Deployment.Trigger}}</span>
+        <span class="text-zinc-600">·</span>
+        <span class="text-zinc-400">{{.Deployment.StartedAt}}</span>
+      </div>
+      {{if eq .Deployment.Status "running"}}
+      <div hx-get="/projects/{{.ProjectID}}/logs/stream?deploy={{.Deployment.ID}}" hx-trigger="load, every 3s" hx-target="#log-output" hx-swap="innerHTML" class="contents"></div>
+      {{end}}
+    </div>
+    <div id="log-output" class="bg-zinc-950">
+      <div class="font-mono text-sm leading-relaxed whitespace-pre-wrap">
+        {{if .Deployment.Log}}
+        {{range $line := splitLines .Deployment.Log}}
+        <div class="hover:bg-zinc-800/50 px-4 py-0.5">{{$line}}</div>
+        {{end}}
+        {{else}}
+        <div class="text-zinc-500 px-4 py-4">Waiting for deployment output...</div>
+        {{end}}
+      </div>
+      <div class="px-4 py-3 border-t border-zinc-800 flex items-center gap-2 text-sm">
+        <span class="inline-block w-2 h-2 rounded-full
+          {{if eq .Deployment.Status "success"}}bg-green-500
+          {{else if eq .Deployment.Status "running"}}bg-amber-500
+          {{else if eq .Deployment.Status "failed"}}bg-red-500
+          {{else}}bg-zinc-500{{end}}"></span>
+        <span class="
+          {{if eq .Deployment.Status "success"}}text-green-500
+          {{else if eq .Deployment.Status "running"}}text-amber-500
+          {{else if eq .Deployment.Status "failed"}}text-red-500
+          {{else}}text-zinc-400{{end}} font-medium">
+          {{upperFirst .Deployment.Status}}
+        </span>
+        {{if .Deployment.FinishedAt}}
+        <span class="text-zinc-400">· {{.Deployment.FinishedAt}}</span>
+        {{end}}
+      </div>
+    </div>
+  </div>
+  {{else}}
+  <div class="border border-zinc-800 rounded-md p-8 text-center text-zinc-500">
+    <p class="text-sm">No deployments yet. Trigger your first deployment to see logs here.</p>
+  </div>
+  {{end}}
+
+  {{if .History}}
+  <div>
+    <h2 class="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-3">Deployment History</h2>
+    <div class="border border-zinc-800 rounded-md overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-800 bg-zinc-900/50">
+            <th class="text-left py-2 px-3 text-xs font-medium text-zinc-400">ID</th>
+            <th class="text-left py-2 px-3 text-xs font-medium text-zinc-400">Status</th>
+            <th class="text-left py-2 px-3 text-xs font-medium text-zinc-400">Trigger</th>
+            <th class="text-left py-2 px-3 text-xs font-medium text-zinc-400">Started</th>
+            <th class="text-left py-2 px-3 text-xs font-medium text-zinc-400">Finished</th>
+            <th class="text-right py-2 px-3 text-xs font-medium text-zinc-400">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range .History}}
+          <tr class="border-b border-zinc-800 last:border-0 hover:bg-zinc-900/30 transition-colors">
+            <td class="py-2 px-3 text-zinc-400 font-mono">#{{.ID}}</td>
+            <td class="py-2 px-3">
+              {{if eq .Status "success"}}
+              <span class="inline-flex items-center gap-1 text-green-500">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Success
+              </span>
+              {{else if eq .Status "running"}}
+              <span class="inline-flex items-center gap-1 text-amber-500">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Running
+              </span>
+              {{else if eq .Status "failed"}}
+              <span class="inline-flex items-center gap-1 text-red-500">
+                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Failed
+              </span>
+              {{else}}
+              <span class="text-zinc-500">{{upperFirst .Status}}</span>
+              {{end}}
+            </td>
+            <td class="py-2 px-3 text-zinc-400">{{.Trigger}}</td>
+            <td class="py-2 px-3 text-zinc-400 text-xs">{{.StartedAt}}</td>
+            <td class="py-2 px-3 text-zinc-400 text-xs">{{if .FinishedAt}}{{.FinishedAt}}{{else}}—{{end}}</td>
+            <td class="py-2 px-3 text-right">
+              <a href="/projects/{{$.ProjectID}}/logs?deploy={{.ID}}" class="text-xs text-zinc-400 hover:text-zinc-50">View</a>
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {{end}}
+</div>
+{{end}}

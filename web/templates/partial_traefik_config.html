@@ -1,0 +1,12 @@
+{{define "partial_traefik_config.html"}}
+<div class="bg-zinc-900 border border-zinc-800 rounded-md overflow-hidden">
+  <div class="flex items-center justify-between px-4 py-2 bg-zinc-900/80 border-b border-zinc-800">
+    <span class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Traefik Configuration</span>
+    <button onclick="copyContent(this)"
+      class="text-xs text-zinc-500 hover:text-zinc-300 px-2 py-1 rounded hover:bg-zinc-800 transition-colors">
+      Copy
+    </button>
+  </div>
+  <pre class="text-xs font-mono text-zinc-300 p-4 overflow-x-auto leading-relaxed">{{.YAML}}</pre>
+</div>
+{{end}}
