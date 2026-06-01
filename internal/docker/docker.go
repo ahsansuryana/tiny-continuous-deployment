@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
 )
 
 type Client struct {
@@ -18,12 +17,7 @@ func New(socketPath string) *Client {
 }
 
 func (c *Client) RunCommand(ctx context.Context, dir string, command string, logFn func(string)) error {
-	parts := splitCommand(command)
-	if len(parts) == 0 {
-		return fmt.Errorf("empty command")
-	}
-
-	cmd := exec.CommandContext(ctx, parts[0], parts[1:]...)
+	cmd := exec.CommandContext(ctx, "sh", "-c", command)
 	cmd.Dir = dir
 
 	env := os.Environ()
@@ -80,51 +74,4 @@ func (c *Client) TestConnection() error {
 		cmd.Env = append(os.Environ(), fmt.Sprintf("DOCKER_HOST=unix://%s", c.socketPath))
 	}
 	return cmd.Run()
-}
-
-func splitCommand(command string) []string {
-	var parts []string
-	current := strings.Builder{}
-	inQuote := false
-	quoteChar := byte(0)
-
-	for i := 0; i < len(command); i++ {
-		c := command[i]
-		if inQuote {
-			if c == quoteChar {
-				inQuote = false
-			} else {
-				current.WriteByte(c)
-			}
-			continue
-		}
-		if c == '\'' || c == '"' {
-			inQuote = true
-			quoteChar = c
-			continue
-		}
-		if c == '&' && i+1 < len(command) && command[i+1] == '&' {
-			part := strings.TrimSpace(current.String())
-			if part != "" {
-				parts = append(parts, part)
-			}
-			current.Reset()
-			i++ // skip second &
-			continue
-		}
-		if c == ' ' {
-			part := strings.TrimSpace(current.String())
-			if part != "" {
-				parts = append(parts, part)
-			}
-			current.Reset()
-			continue
-		}
-		current.WriteByte(c)
-	}
-	part := strings.TrimSpace(current.String())
-	if part != "" {
-		parts = append(parts, part)
-	}
-	return parts
 }
