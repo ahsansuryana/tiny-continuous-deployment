@@ -24,12 +24,35 @@
           class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors">
       </div>
 
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label for="compose_path" class="block text-sm font-medium text-zinc-300 mb-1.5">Compose Path</label>
-          <input id="compose_path" name="compose_path" type="text" required value="{{.Project.ComposePath}}" placeholder="./docker-compose.yml"
+      <div>
+        <label class="block text-sm font-medium text-zinc-300 mb-2">Compose Source</label>
+        <div class="flex gap-1 p-1 bg-zinc-900 border border-zinc-700 rounded-md w-fit" x-data="{ type: '{{.Project.ComposeType}}' }" x-init="type = '{{if .Project.ComposeType}}{{.Project.ComposeType}}{{else}}inline{{end}}'">
+          <button type="button" @click="type = 'inline'" :class="type === 'inline' ? 'bg-zinc-700 text-zinc-50' : 'text-zinc-400 hover:text-zinc-50'" class="px-3 py-1.5 text-sm rounded-md transition-colors">Inline</button>
+          <button type="button" @click="type = 'path'" :class="type === 'path' ? 'bg-zinc-700 text-zinc-50' : 'text-zinc-400 hover:text-zinc-50'" class="px-3 py-1.5 text-sm rounded-md transition-colors">File Path</button>
+          <input type="hidden" name="compose_type" :value="type">
+        </div>
+      </div>
+
+      <div x-data="{ type: '{{if .Project.ComposeType}}{{.Project.ComposeType}}{{else}}inline{{end}}' }" x-init="type = '{{if .Project.ComposeType}}{{.Project.ComposeType}}{{else}}inline{{end}}'">
+        <div x-show="type === 'inline'">
+          <label for="compose_content" class="block text-sm font-medium text-zinc-300 mb-1.5">docker-compose.yml</label>
+          <textarea id="compose_content" name="compose_content" rows="16" spellcheck="false"
+            class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm font-mono text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors"
+            placeholder="version: '3.8'
+services:
+  app:
+    image: nginx:latest
+    ports:
+      - '80:80'">{{.Project.ComposeContent}}</textarea>
+        </div>
+        <div x-show="type === 'path'">
+          <label for="compose_path" class="block text-sm font-medium text-zinc-300 mb-1.5">Compose File Path</label>
+          <input id="compose_path" name="compose_path" type="text" value="{{.Project.ComposePath}}" placeholder="./docker-compose.yml"
             class="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 transition-colors">
         </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
         <div>
           <label for="branch" class="block text-sm font-medium text-zinc-300 mb-1.5">Branch</label>
           <input id="branch" name="branch" type="text" value="{{.Project.Branch}}" placeholder="main"

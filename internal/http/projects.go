@@ -61,15 +61,17 @@ func (s *Server) projectCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	p := &project.Project{
-		Name:         strings.TrimSpace(r.FormValue("name")),
-		RepoURL:      strings.TrimSpace(r.FormValue("repo_url")),
-		ComposePath:  strings.TrimSpace(r.FormValue("compose_path")),
-		WebhookToken: strings.TrimSpace(r.FormValue("webhook_token")),
-		Branch:       strings.TrimSpace(r.FormValue("branch")),
-		RegistryType: strings.TrimSpace(r.FormValue("registry_type")),
-		RegistryUser: strings.TrimSpace(r.FormValue("registry_username")),
-		RegistryPass: strings.TrimSpace(r.FormValue("registry_password")),
-		AutoDeploy:   r.FormValue("auto_deploy") == "on",
+		Name:           strings.TrimSpace(r.FormValue("name")),
+		RepoURL:        strings.TrimSpace(r.FormValue("repo_url")),
+		ComposePath:    strings.TrimSpace(r.FormValue("compose_path")),
+		ComposeType:    strings.TrimSpace(r.FormValue("compose_type")),
+		ComposeContent: strings.TrimSpace(r.FormValue("compose_content")),
+		WebhookToken:   strings.TrimSpace(r.FormValue("webhook_token")),
+		Branch:         strings.TrimSpace(r.FormValue("branch")),
+		RegistryType:   strings.TrimSpace(r.FormValue("registry_type")),
+		RegistryUser:   strings.TrimSpace(r.FormValue("registry_username")),
+		RegistryPass:   strings.TrimSpace(r.FormValue("registry_password")),
+		AutoDeploy:     r.FormValue("auto_deploy") == "on",
 	}
 
 	if errMsg := p.Validate(); errMsg != "" {
@@ -175,16 +177,18 @@ func (s *Server) projectUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	p := &project.Project{
-		ID:           id,
-		Name:         strings.TrimSpace(r.FormValue("name")),
-		RepoURL:      strings.TrimSpace(r.FormValue("repo_url")),
-		ComposePath:  strings.TrimSpace(r.FormValue("compose_path")),
-		WebhookToken: strings.TrimSpace(r.FormValue("webhook_token")),
-		Branch:       strings.TrimSpace(r.FormValue("branch")),
-		RegistryType: strings.TrimSpace(r.FormValue("registry_type")),
-		RegistryUser: strings.TrimSpace(r.FormValue("registry_username")),
-		RegistryPass: strings.TrimSpace(r.FormValue("registry_password")),
-		AutoDeploy:   r.FormValue("auto_deploy") == "on",
+		ID:             id,
+		Name:           strings.TrimSpace(r.FormValue("name")),
+		RepoURL:        strings.TrimSpace(r.FormValue("repo_url")),
+		ComposePath:    strings.TrimSpace(r.FormValue("compose_path")),
+		ComposeType:    strings.TrimSpace(r.FormValue("compose_type")),
+		ComposeContent: strings.TrimSpace(r.FormValue("compose_content")),
+		WebhookToken:   strings.TrimSpace(r.FormValue("webhook_token")),
+		Branch:         strings.TrimSpace(r.FormValue("branch")),
+		RegistryType:   strings.TrimSpace(r.FormValue("registry_type")),
+		RegistryUser:   strings.TrimSpace(r.FormValue("registry_username")),
+		RegistryPass:   strings.TrimSpace(r.FormValue("registry_password")),
+		AutoDeploy:     r.FormValue("auto_deploy") == "on",
 	}
 
 	if errMsg := p.Validate(); errMsg != "" {
@@ -219,10 +223,18 @@ func (s *Server) projectDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.projects.Delete(id); err != nil {
+	p, err := s.projects.GetByID(id)
+	if err != nil {
+		s.render.RenderError(w, r, 404, "Project not found")
+		return
+	}
+
+	if err = s.projects.Delete(id); err != nil {
 		s.render.RenderError(w, r, 500, "Failed to delete project")
 		return
 	}
+
+	s.deployer.RemoveProjectDir(p)
 
 	http.Redirect(w, r, "/projects", http.StatusSeeOther)
 }

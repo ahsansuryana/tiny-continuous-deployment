@@ -49,8 +49,14 @@
       <div class="text-sm mt-0.5 font-mono">{{.Project.Branch}}</div>
     </div>
     <div class="bg-zinc-900 px-5 py-3.5">
-      <div class="text-zinc-400 text-xs font-medium uppercase tracking-wider">Compose Path</div>
-      <div class="text-sm mt-0.5 font-mono">{{.Project.ComposePath}}</div>
+      <div class="text-zinc-400 text-xs font-medium uppercase tracking-wider">Compose Source</div>
+      <div class="text-sm mt-0.5 font-mono">
+        {{if eq .Project.ComposeType "inline"}}
+        <span class="text-blue-400">Inline</span>
+        {{else}}
+        {{.Project.ComposePath}}
+        {{end}}
+      </div>
     </div>
     <div class="bg-zinc-900 px-5 py-3.5">
       <div class="text-zinc-400 text-xs font-medium uppercase tracking-wider">Webhook Token</div>
@@ -65,6 +71,13 @@
       <div class="text-sm mt-0.5">{{.Project.CreatedAt}}</div>
     </div>
   </div>
+
+  {{if eq .Project.ComposeType "inline"}}
+  <div>
+    <h2 class="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-3">docker-compose.yml</h2>
+    <pre class="bg-zinc-900 border border-zinc-800 rounded-md px-4 py-3 text-sm font-mono text-zinc-300 overflow-x-auto max-h-96 overflow-y-auto">{{.Project.ComposeContent}}</pre>
+  </div>
+  {{end}}
 
   <div>
     <h2 class="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-3">Deploy URL</h2>

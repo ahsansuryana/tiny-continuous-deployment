@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	_ "modernc.org/sqlite"
 )
 
@@ -48,6 +49,8 @@ func (db *DB) Migrate() error {
 			name            TEXT NOT NULL UNIQUE,
 			repo_url        TEXT NOT NULL DEFAULT '',
 			compose_path    TEXT NOT NULL DEFAULT './docker-compose.yml',
+			compose_type    TEXT NOT NULL DEFAULT 'path',
+			compose_content TEXT NOT NULL DEFAULT '',
 			webhook_token   TEXT NOT NULL,
 			branch          TEXT NOT NULL DEFAULT 'main',
 			registry_type   TEXT NOT NULL DEFAULT '',
@@ -86,5 +89,59 @@ func (db *DB) Migrate() error {
 		}
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return db.migrateV2()
+}
+
+func (db *DB) migrateV2() error {
+	columns := []struct {
+		name string
+		typ  string
+		def  string
+	}{
+		{"compose_type", "TEXT", "'path'"},
+		{"compose_content", "TEXT", "''"},
+	}
+
+	for _, col := range columns {
+		exists, err := db.columnExists("projects", col.name)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			_, err := db.Exec(fmt.Sprintf(
+				"ALTER TABLE projects ADD COLUMN %s %s NOT NULL DEFAULT %s",
+				col.name, col.typ, col.def))
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (db *DB) columnExists(table, column string) (bool, error) {
+	rows, err := db.Query(fmt.Sprintf("PRAGMA table_info(%s)", table))
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var cid int
+		var name, ctype string
+		var notnull int
+		var dflt sql.NullString
+		var pk int
+		if err := rows.Scan(&cid, &name, &ctype, &notnull, &dflt, &pk); err != nil {
+			return false, err
+		}
+		if name == column {
+			return true, nil
+		}
+	}
+	return false, nil
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -87,6 +89,10 @@ func (d *Deployer) Run(projectID int64, trigger string) (int64, error) {
 
 	go func() {
 		defer d.clearRunning(projectID)
+		if err := d.ensureComposeFile(proj); err != nil {
+			d.finishDeployment(deployID, "failed", fmt.Sprintf("[ERROR] %v", err))
+			return
+		}
 		d.executeDeploy(ctx, deployID, proj, settings)
 	}()
 
@@ -115,7 +121,7 @@ func (d *Deployer) executeDeploy(ctx context.Context, deployID int64, proj *proj
 
 	logBuilder := NewLogBuilder()
 
-	logBuilder.Append("[INFO] Starting deployment for %s (%s)", proj.Name, proj.ComposePath)
+	logBuilder.Append("[INFO] Starting deployment for %s (%s)", proj.Name, proj.DeployDir())
 	d.updateDeploymentLog(deployID, logBuilder.String())
 
 	if s.DeployCommand == "" {
@@ -125,7 +131,7 @@ func (d *Deployer) executeDeploy(ctx context.Context, deployID int64, proj *proj
 	logBuilder.Append("[INFO] Running: %s", s.DeployCommand)
 	d.updateDeploymentLog(deployID, logBuilder.String())
 
-	err := d.docker.RunCommand(ctx, proj.ComposePath, s.DeployCommand, func(line string) {
+	err := d.docker.RunCommand(ctx, proj.DeployDir(), s.DeployCommand, func(line string) {
 		logBuilder.Append("%s", line)
 	})
 
@@ -155,6 +161,27 @@ func (d *Deployer) finishDeployment(deployID int64, status string, logText strin
 	if err != nil {
 		log.Printf("failed to finish deployment: %v", err)
 	}
+}
+
+func (d *Deployer) ensureComposeFile(proj *project.Project) error {
+	if proj.ComposeType != "inline" {
+		return nil
+	}
+	dir := "/data/projects/" + proj.Name
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("failed to create project directory: %w", err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "docker-compose.yml"), []byte(proj.ComposeContent), 0644); err != nil {
+		return fmt.Errorf("failed to write docker-compose.yml: %w", err)
+	}
+	return nil
+}
+
+func (d *Deployer) RemoveProjectDir(proj *project.Project) {
+	if proj.ComposeType != "inline" {
+		return
+	}
+	os.RemoveAll("/data/projects/" + proj.Name)
 }
 
 func (d *Deployer) clearRunning(projectID int64) {
