@@ -7,6 +7,8 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
+    group_add:
+      - "999"
     env_file:
       - .env
     environment:
