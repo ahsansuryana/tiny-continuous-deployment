@@ -12,7 +12,7 @@ COPY go.mod .
 RUN go mod download
 COPY . .
 COPY --from=css /app/web/static/css/output.css web/static/css/output.css
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /deployhub .
+RUN go mod tidy && CGO_ENABLED=0 go build -ldflags="-s -w" -o /deployhub .
 
 FROM alpine:3.20
 RUN apk add --no-cache ca-certificates tzdata && \
