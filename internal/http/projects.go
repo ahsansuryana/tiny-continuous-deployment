@@ -1,7 +1,10 @@
 package http
 
 import (
+	"context"
 	"deployhub/internal/project"
+	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -214,6 +217,93 @@ func (s *Server) projectUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/projects/"+strconv.FormatInt(id, 10), http.StatusSeeOther)
+}
+
+func (s *Server) projectStop(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		s.render.RenderError(w, r, 400, "Invalid project ID")
+		return
+	}
+
+	p, err := s.projects.GetByID(id)
+	if err != nil {
+		s.render.RenderError(w, r, 404, "Project not found")
+		return
+	}
+
+	go func() {
+		err := s.docker.StreamCommand(context.Background(), p.DeployDir(), "docker compose stop", make(chan string, 1))
+		if err != nil {
+			log.Printf("failed to stop project %d: %v", id, err)
+		}
+	}()
+
+	http.Redirect(w, r, "/projects/"+strconv.FormatInt(id, 10), http.StatusSeeOther)
+}
+
+func (s *Server) projectContainerLogs(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		s.render.RenderError(w, r, 400, "Invalid project ID")
+		return
+	}
+
+	p, err := s.projects.GetByID(id)
+	if err != nil {
+		s.render.RenderError(w, r, 404, "Project not found")
+		return
+	}
+
+	username := s.auth.GetUsername(r)
+	s.render.Render(w, r, "log_viewer_container.html", logViewerData{
+		ProjectName: p.Name,
+		ProjectID:   id,
+		CSRFToken:   s.csrfToken(r),
+		Username:    username,
+	})
+}
+
+func (s *Server) projectContainerLogStream(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
+		return
+	}
+
+	p, err := s.projects.GetByID(id)
+	if err != nil {
+		http.Error(w, "Project not found", http.StatusNotFound)
+		return
+	}
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "Streaming not supported", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+
+	ctx := r.Context()
+	lines := make(chan string, 100)
+
+	go func() {
+		defer close(lines)
+		s.docker.StreamCommand(ctx, p.DeployDir(), "docker compose logs --tail=100 --no-color -f", lines)
+	}()
+
+	for line := range lines {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			fmt.Fprintf(w, "data: %s\n\n", escapeHTML(line))
+			flusher.Flush()
+		}
+	}
 }
 
 func (s *Server) projectDelete(w http.ResponseWriter, r *http.Request) {

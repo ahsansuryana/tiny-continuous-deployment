@@ -17,7 +17,6 @@
           <th class="text-left py-2.5 px-4 text-xs font-medium text-zinc-400 uppercase tracking-wider">Path</th>
           <th class="text-left py-2.5 px-4 text-xs font-medium text-zinc-400 uppercase tracking-wider">Branch</th>
           <th class="text-left py-2.5 px-4 text-xs font-medium text-zinc-400 uppercase tracking-wider">Last Deploy</th>
-          <th class="text-right py-2.5 px-4 text-xs font-medium text-zinc-400 uppercase tracking-wider">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -54,24 +53,10 @@
           <td class="py-2.5 px-4 text-zinc-400">
             {{if .LastDeployAt}}{{timeAgo .LastDeployAt}}{{else}}—{{end}}
           </td>
-          <td class="py-2.5 px-4 text-right">
-            <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <form action="/projects/{{.ID}}/deploy" method="post" class="inline">
-                <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                <button class="text-xs text-zinc-400 hover:text-zinc-50 px-2 py-1 rounded hover:bg-zinc-800 transition-colors">Deploy</button>
-              </form>
-              <a href="/projects/{{.ID}}/logs" class="text-xs text-zinc-400 hover:text-zinc-50 px-2 py-1 rounded hover:bg-zinc-800 transition-colors">Logs</a>
-              <a href="/projects/{{.ID}}/edit" class="text-xs text-zinc-400 hover:text-zinc-50 px-2 py-1 rounded hover:bg-zinc-800 transition-colors">Edit</a>
-              <form action="/projects/{{.ID}}/delete" method="post" class="inline" onsubmit="return confirm('Delete this project?')">
-                <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                <button class="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-950/30 transition-colors">Delete</button>
-              </form>
-            </div>
-          </td>
         </tr>
         {{else}}
         <tr>
-          <td colspan="6" class="py-16 text-center text-zinc-500">
+          <td colspan="5" class="py-16 text-center text-zinc-500">
             <p class="text-sm">No projects configured</p>
             <a href="/projects/new" class="text-sm text-blue-400 hover:text-blue-300 mt-2 inline-block">Create your first project</a>
           </td>

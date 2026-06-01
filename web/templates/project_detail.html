@@ -30,11 +30,20 @@
           Deploy Now
         </button>
       </form>
-      <a href="/projects/{{.Project.ID}}/edit" class="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-50 rounded-md hover:bg-zinc-800/50 transition-colors border border-zinc-800">
-        Edit
+      <form action="/projects/{{.Project.ID}}/stop" method="post" class="inline">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <button class="px-3 py-1.5 text-sm text-amber-400 hover:text-amber-300 rounded-md hover:bg-amber-950/30 transition-colors border border-zinc-800">
+          Stop
+        </button>
+      </form>
+      <a href="/projects/{{.Project.ID}}/container-logs" class="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-50 rounded-md hover:bg-zinc-800/50 transition-colors border border-zinc-800">
+        Container Logs
       </a>
       <a href="/projects/{{.Project.ID}}/logs" class="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-50 rounded-md hover:bg-zinc-800/50 transition-colors border border-zinc-800">
-        Logs
+        Deploy Logs
+      </a>
+      <a href="/projects/{{.Project.ID}}/edit" class="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-50 rounded-md hover:bg-zinc-800/50 transition-colors border border-zinc-800">
+        Edit
       </a>
     </div>
   </div>

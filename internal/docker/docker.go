@@ -68,6 +68,54 @@ func (c *Client) RunCommand(ctx context.Context, dir string, command string, log
 	return nil
 }
 
+func (c *Client) StreamCommand(ctx context.Context, dir string, command string, lines chan<- string) error {
+	cmd := exec.CommandContext(ctx, "sh", "-c", command)
+	cmd.Dir = dir
+
+	env := os.Environ()
+	if c.socketPath != "" {
+		env = append(env, fmt.Sprintf("DOCKER_HOST=unix://%s", c.socketPath))
+	}
+	cmd.Env = env
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	scanner := bufio.NewScanner(stdout)
+	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
+	for scanner.Scan() {
+		select {
+		case lines <- scanner.Text():
+		case <-ctx.Done():
+			cmd.Process.Kill()
+			return ctx.Err()
+		}
+	}
+
+	errScanner := bufio.NewScanner(stderr)
+	errScanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
+	for errScanner.Scan() {
+		select {
+		case lines <- errScanner.Text():
+		case <-ctx.Done():
+			cmd.Process.Kill()
+			return ctx.Err()
+		}
+	}
+
+	return cmd.Wait()
+}
+
 func (c *Client) TestConnection() error {
 	cmd := exec.Command("docker", "info")
 	if c.socketPath != "" {

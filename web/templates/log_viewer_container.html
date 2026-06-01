@@ -1,0 +1,37 @@
+{{define "log_viewer_container.html"}}
+<div class="max-w-5xl space-y-6">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <a href="/projects/{{.ProjectID}}" class="text-zinc-400 hover:text-zinc-50 transition-colors">&larr; Back</a>
+      <h1 class="text-2xl font-semibold tracking-tight">{{.ProjectName}}</h1>
+      <span class="bg-blue-900/50 text-blue-300 text-xs font-medium px-2 py-0.5 rounded">Container Logs</span>
+    </div>
+  </div>
+
+  <div class="border border-zinc-800 rounded-md overflow-hidden bg-zinc-950">
+    <div class="flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-zinc-900/50">
+      <span class="text-xs text-zinc-400 font-medium">Live container logs — <span id="log-status" class="text-green-500">connected</span></span>
+      <div class="flex items-center gap-2">
+        <button onclick="document.getElementById('log-output').textContent=''" class="text-xs text-zinc-400 hover:text-zinc-50 px-2 py-1 rounded hover:bg-zinc-800 transition-colors">Clear</button>
+      </div>
+    </div>
+    <pre id="log-output" class="font-mono text-sm leading-relaxed text-zinc-300 overflow-x-auto max-h-[70vh] overflow-y-auto p-4 whitespace-pre-wrap"></pre>
+  </div>
+</div>
+
+<script>
+  const el = document.getElementById('log-output');
+  const evtSource = new EventSource('/projects/{{.ProjectID}}/container-logs/stream');
+
+  evtSource.onmessage = function(e) {
+    const line = document.createTextNode(e.data + '\n');
+    el.appendChild(line);
+    el.scrollTop = el.scrollHeight;
+  };
+
+  evtSource.onerror = function() {
+    document.getElementById('log-status').textContent = 'disconnected';
+    document.getElementById('log-status').className = 'text-red-500';
+  };
+</script>
+{{end}}
