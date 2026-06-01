@@ -40,9 +40,6 @@ func (p *Project) Validate() string {
 	if p.ComposeType == "inline" && p.ComposeContent == "" {
 		return "compose content is required when using inline YAML"
 	}
-	if p.WebhookToken == "" {
-		return "webhook token is required"
-	}
 	return ""
 }
 
